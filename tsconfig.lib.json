@@ -13,5 +13,5 @@
     "allowSyntheticDefaultImports": true,
     "ignoreDeprecations": "6.0"
   },
-  "include": ["src/index.tsx", "src/DateRangePicker.tsx", "src/dateRangeState.ts", "src/types.ts"]
+  "include": ["src/index.ts", "src/DateRangePicker.tsx", "src/dateRangeState.ts", "src/types.ts"]
 }

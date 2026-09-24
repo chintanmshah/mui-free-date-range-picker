@@ -1,6 +1,6 @@
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { DateRangePicker } from './DateRangePicker'
@@ -28,9 +28,11 @@ describe('DateRangePicker', () => {
     const onChange = vi.fn()
     renderPicker({ onChange })
 
-    await user.click(screen.getByLabelText('Start date'))
-    await user.click(screen.getAllByRole('gridcell', { name: '10' })[0])
-    await user.click(screen.getAllByRole('gridcell', { name: '15' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
+    const leftCalendar = within(screen.getAllByRole('grid')[0])
+    await user.click(leftCalendar.getByRole('gridcell', { name: '10' }))
+    expect(onChange).toHaveBeenCalledTimes(1)
+    await user.click(within(screen.getAllByRole('grid')[0]).getByRole('gridcell', { name: '15' }))
 
     expect(onChange).toHaveBeenLastCalledWith([
       new Date(2024, 3, 10),
@@ -52,7 +54,7 @@ describe('DateRangePicker', () => {
     const onChange = vi.fn()
     renderPicker({ onChange, minDate: new Date(2024, 3, 12) })
 
-    await user.click(screen.getByLabelText('Start date'))
+    await user.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
     expect(screen.getAllByRole('gridcell', { name: '10' })[0]).toBeDisabled()
 
     expect(onChange).not.toHaveBeenCalledWith([

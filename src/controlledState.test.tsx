@@ -2,7 +2,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { DateRangePicker } from './DateRangePicker'
 
 it('keeps the parent value authoritative when it does not update', async () => {
@@ -19,7 +19,7 @@ it('keeps the parent value authoritative when it does not update', async () => {
     </LocalizationProvider>,
   )
 
-  await user.click(screen.getByLabelText('Start date'))
+  await user.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
   await user.click(screen.getAllByRole('gridcell', { name: '10' })[0])
 
   expect(onChange).toHaveBeenCalled()

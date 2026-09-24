@@ -6,10 +6,12 @@
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
-    "build:lib": "tsup src/index.tsx --tsconfig tsconfig.lib.json --format esm,cjs --dts --external react,react-dom,@mui/material,@mui/system,@mui/x-date-pickers,@emotion/react,@emotion/styled",
+    "build:lib": "tsup src/index.ts --tsconfig tsconfig.lib.json --format esm,cjs --dts --external react,react-dom,@mui/material,@mui/system,@mui/x-date-pickers,@emotion/react,@emotion/styled",
     "build:demo": "tsc -b && vite build",
     "build": "npm run build:lib && npm run build:demo",
     "lint": "oxlint",
@@ -18,17 +20,19 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/material": "^9.4.0",
-    "@mui/x-date-pickers": "^9.14.0",
+    "@emotion/react": ">=11.0.0",
+    "@emotion/styled": ">=11.0.0",
+    "@mui/icons-material": "^9.4.0",
+    "@mui/material": ">=5.0.0",
+    "@mui/x-date-pickers": ">=6.0.0",
     "date-fns": "^4.4.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "peerDependencies": {
     "@emotion/react": ">=11.0.0",
     "@emotion/styled": ">=11.0.0",
+    "@mui/icons-material": ">=5.0.0",
     "@mui/material": ">=5.0.0",
     "@mui/x-date-pickers": ">=6.0.0",
     "react": ">=18.0.0",

@@ -6,6 +6,8 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material'
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
+import InputAdornment from '@mui/material/InputAdornment'
 import type { TextFieldProps } from '@mui/material/TextField'
 import type { PickerValidDate } from '@mui/x-date-pickers/models'
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar'
@@ -32,9 +34,21 @@ export function DateRangePicker({
 }: DateRangePickerProps<PickerValidDate>) {
   const utils = useLocalizationContext().adapter
   const compact = useMediaQuery('(max-width: 600px)')
+  const initialValue = value ?? defaultValue
+  const initialFormat = format ?? utils.formats.keyboardDate
   const [range, setRange] = useState<DateRange<PickerValidDate>>(value ?? defaultValue)
+  const [draftStart, setDraftStart] = useState(
+    initialValue[0] === null ? '' : utils.formatByString(initialValue[0], initialFormat),
+  )
+  const [draftEnd, setDraftEnd] = useState(
+    initialValue[1] === null ? '' : utils.formatByString(initialValue[1], initialFormat),
+  )
+  const [activeMonth, setActiveMonth] = useState<PickerValidDate>(() =>
+    utils.startOfMonth(referenceDate ?? utils.date()),
+  )
   const [open, setOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+  const [, setHoverDate] = useState<PickerValidDate | null>(null)
   const stateRef = useRef(
     createDateRangeState<PickerValidDate>(utils, value ?? defaultValue, {
       isDateSelectable: (date) => isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture),
@@ -52,14 +66,29 @@ export function DateRangePicker({
   }, [disableFuture, disablePast, maxDate, minDate, utils, value])
 
   const displayedRange = value ?? range
+  const displayedStart = displayedRange[0]
+  const displayedEnd = displayedRange[1]
   const fieldFormat = format ?? utils.formats.keyboardDate
   const startFieldProps = slotProps?.startField as Partial<TextFieldProps> | undefined
   const endFieldProps = slotProps?.endField as Partial<TextFieldProps> | undefined
   const displayValue = (date: PickerValidDate | null) =>
     date === null ? '' : utils.formatByString(date, fieldFormat)
+  const formattedStart = displayValue(displayedStart)
+  const formattedEnd = displayValue(displayedEnd)
+
+  const didMountRef = useRef(false)
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      return
+    }
+    setDraftStart(formattedStart)
+    setDraftEnd(formattedEnd)
+  }, [formattedEnd, formattedStart])
 
   const handleDateSelect = (date: PickerValidDate) => {
     const result = stateRef.current.selectDate(date)
+    setHoverDate(null)
     if (value === undefined) {
       setRange(result.range)
     }
@@ -85,8 +114,63 @@ export function DateRangePicker({
     onChange?.(nextRange)
   }
 
-  const calendarReferenceDate = referenceDate ?? utils.date()
-  const nextMonth = utils.addMonths(calendarReferenceDate, 1)
+  const handleFieldCommit = (field: 'start' | 'end', input: string) => {
+    const parsed = utils.parse(input, fieldFormat)
+    if (parsed === null || !utils.isValid(parsed) || !isSelectable(parsed, utils, minDate, maxDate, disablePast, disableFuture)) {
+      return
+    }
+
+    const nextStart = field === 'start' ? parsed : displayedRange[0]
+    const nextEnd = field === 'end' ? parsed : displayedRange[1]
+    const nextRange: DateRange<PickerValidDate> = nextStart !== null && nextEnd !== null
+      && utils.isBefore(nextEnd, nextStart)
+      ? [nextEnd, nextStart]
+      : [nextStart, nextEnd]
+    stateRef.current = createDateRangeState(utils, nextRange, {
+      isDateSelectable: (date) => isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture),
+    })
+    if (value === undefined) {
+      setRange(nextRange)
+    }
+    onChange?.(nextRange)
+  }
+
+  const handleFieldChange = (field: 'start' | 'end', input: string) => {
+    if (field === 'start') {
+      setDraftStart(input)
+    } else {
+      setDraftEnd(input)
+    }
+  }
+
+  const getDaySlotProps = (day: PickerValidDate) => {
+    const preview = stateRef.current.preview
+    const visibleRange = preview ?? displayedRange
+    const isInRange = visibleRange[0] !== null && visibleRange[1] !== null
+      && !utils.isBefore(day, visibleRange[0])
+      && !utils.isBefore(visibleRange[1], day)
+    const isEdge = (visibleRange[0] !== null && utils.isEqual(day, visibleRange[0]))
+      || (visibleRange[1] !== null && utils.isEqual(day, visibleRange[1]))
+    const isPreview = preview !== null && isInRange && !isEdge
+    const isSelectedRange = preview === null && isInRange
+
+    return {
+      onMouseEnter: (_event: React.MouseEvent<HTMLElement>) => {
+        if (stateRef.current.phase === 'end') {
+          stateRef.current.previewDate(day)
+          setHoverDate(day)
+        }
+      },
+      'data-range-preview': isPreview || undefined,
+      'data-range-selected': isSelectedRange || undefined,
+      sx: {
+        ...(isPreview ? { borderRadius: 0, borderTop: '1px dashed', borderBottom: '1px dashed' } : {}),
+        ...(isSelectedRange ? { borderRadius: 0, bgcolor: 'primary.main', color: 'primary.contrastText' } : {}),
+      },
+    }
+  }
+
+  const nextMonth = utils.addMonths(activeMonth, 1)
   const hasInvalidDate = displayedRange.some(
     (date) => date !== null && !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture),
   )
@@ -96,23 +180,47 @@ export function DateRangePicker({
       <TextField
         {...startFieldProps}
         label="Start date"
-        value={displayValue(displayedRange[0])}
-        onClick={handleOpen}
+        value={draftStart}
+        onChange={(event) => handleFieldChange('start', event.target.value)}
+        onBlur={(event) => handleFieldCommit('start', event.currentTarget.value)}
         disabled={disabled}
         error={hasInvalidDate}
         helperText={hasInvalidDate ? 'Select valid dates' : undefined}
-        slotProps={{ input: { readOnly: true, 'aria-label': 'Start date' } }}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton aria-label="Open calendar" onClick={handleOpen} edge="end">
+                  <CalendarMonthIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+          htmlInput: { 'aria-label': 'Start date' },
+        }}
       />
       <Typography sx={{ pt: 2 }} aria-hidden="true">to</Typography>
       <TextField
         {...endFieldProps}
         label="End date"
-        value={displayValue(displayedRange[1])}
-        onClick={handleOpen}
+        value={draftEnd}
+        onChange={(event) => handleFieldChange('end', event.target.value)}
+        onBlur={(event) => handleFieldCommit('end', event.currentTarget.value)}
         disabled={disabled}
         error={hasInvalidDate}
         helperText={hasInvalidDate ? 'Select valid dates' : undefined}
-        slotProps={{ input: { readOnly: true, 'aria-label': 'End date' } }}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton aria-label="Open calendar" onClick={handleOpen} edge="end">
+                  <CalendarMonthIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+          htmlInput: { 'aria-label': 'End date' },
+        }}
       />
       <IconButton aria-label="Clear date range" onClick={handleClear} disabled={disabled || readOnly}>
         ×
@@ -123,16 +231,30 @@ export function DateRangePicker({
         onClose={() => setOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, pt: 1 }}>
+          <IconButton aria-label="Previous month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, -1))}>
+            {'<'}
+          </IconButton>
+          <Typography variant="subtitle1">
+            {formatMonthYear(utils, activeMonth)}
+            {!compact && ` / ${formatMonthYear(utils, nextMonth)}`}
+          </Typography>
+          <IconButton aria-label="Next month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, 1))}>
+            {'>'}
+          </IconButton>
+        </Box>
         <Box sx={{ display: 'flex', p: 1 }}>
           <DateCalendar
             value={displayedRange[0]}
-            referenceDate={calendarReferenceDate}
+            referenceDate={activeMonth}
             onChange={(date) => date !== null && handleDateSelect(date)}
             minDate={minDate}
             maxDate={maxDate}
             disablePast={disablePast}
             disableFuture={disableFuture}
             shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
+            slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
+            sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
           />
           {!compact && (
             <DateCalendar
@@ -144,6 +266,8 @@ export function DateRangePicker({
               disablePast={disablePast}
               disableFuture={disableFuture}
               shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
+              slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
+              sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
             />
           )}
         </Box>
@@ -167,4 +291,11 @@ function isSelectable(
     || (disablePast && utils.isBefore(date, today))
     || (disableFuture && utils.isBefore(today, date))
   )
+}
+
+function formatMonthYear(
+  utils: ReturnType<typeof useLocalizationContext>['adapter'],
+  date: PickerValidDate,
+) {
+  return `${utils.format(date, 'month')} ${utils.format(date, 'year')}`
 }
