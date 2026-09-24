@@ -1,4 +1,5 @@
 import type { SxProps, Theme } from '@mui/material/styles'
+import type { PickerValidDate } from '@mui/x-date-pickers/models'
 
 export type DateRange<TDate> = [TDate | null, TDate | null]
 
@@ -13,7 +14,7 @@ export interface DateRangeConstraints<TDate> {
   isDateSelectable?: (date: TDate) => boolean
 }
 
-export interface DateRangePickerProps<TDate> {
+export interface DateRangePickerProps<TDate = PickerValidDate> {
   value?: DateRange<TDate>
   defaultValue?: DateRange<TDate>
   onChange?: (value: DateRange<TDate>) => void
@@ -25,6 +26,7 @@ export interface DateRangePickerProps<TDate> {
   disabled?: boolean
   readOnly?: boolean
   closeOnSelect?: boolean
+  referenceDate?: TDate
   slotProps?: Record<string, unknown>
   sx?: SxProps<Theme>
 }
