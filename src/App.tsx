@@ -17,10 +17,7 @@ const theme = createTheme({
 })
 
 function App() {
-  const [value, setValue] = useState<DateRange<Date>>([
-    new Date(2025, 5, 12),
-    new Date(2025, 5, 18),
-  ])
+  const [value, setValue] = useState<DateRange<Date>>([null, null])
   const formattedRange = value[0] && value[1]
     ? `${value[0].toLocaleDateString()} - ${value[1].toLocaleDateString()}`
     : 'Choose a start and end date'
@@ -37,7 +34,7 @@ function App() {
           <section className="demo-grid">
             <div className="picker-stage">
               <div className="stage-label">Reservation window</div>
-              <DateRangePicker value={value} onChange={setValue} referenceDate={new Date(2025, 5, 1)} />
+              <DateRangePicker value={value} onChange={setValue} />
               <div className="selection-readout">
                 <span>Selected range</span>
                 <strong>{formattedRange}</strong>

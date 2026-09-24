@@ -1,8 +1,8 @@
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DateRangePicker } from './DateRangePicker'
 
 function renderPicker() {
@@ -14,6 +14,24 @@ function renderPicker() {
 }
 
 describe('calendar navigation', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('uses the actual current month when no reference date is supplied', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2025, 6, 15))
+    render(
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <DateRangePicker />
+      </LocalizationProvider>,
+    )
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
+
+    expect(screen.getByText('July 2025 / August 2025')).toBeInTheDocument()
+  })
+
   it('shows adjacent months when no range is selected', async () => {
     const user = userEvent.setup()
     renderPicker()
