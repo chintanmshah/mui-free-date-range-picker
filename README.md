@@ -55,3 +55,15 @@ npm run build
 ```
 
 The Vite demo uses `AdapterDateFns`; the package itself does not hard-code a date library. The implementation is original and uses public free MUI APIs. It is not a copy of MUI X Pro source code and does not provide MUI X Pro's commercial-only APIs.
+
+## Credits and attribution
+
+This package is an original implementation built with open-source projects:
+
+- [React](https://react.dev/) and [React DOM](https://react.dev/)
+- [Material UI](https://mui.com/material-ui/) and [MUI X Date Pickers](https://mui.com/x/react-date-pickers/)
+- [Emotion](https://emotion.sh/)
+- [date-fns](https://date-fns.org/) for the demo adapter
+- [Vite](https://vite.dev/), [Vitest](https://vitest.dev/), and [Testing Library](https://testing-library.com/) for development and testing
+
+Those projects retain their own licenses. This package is distributed under the MIT License. No source code or assets from MUI X Pro are included.
