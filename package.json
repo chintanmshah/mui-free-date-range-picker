@@ -1,13 +1,21 @@
 {
   "name": "mui-free-date-range-picker",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "0.1.0",
   "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build:lib": "tsup src/index.tsx --format esm,cjs --dts --external react,react-dom,@mui/material,@mui/system,@mui/x-date-pickers,@emotion/react,@emotion/styled",
+    "build:demo": "tsc -b && vite build",
+    "build": "npm run build:lib && npm run build:demo",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -17,6 +25,14 @@
     "date-fns": "^4.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
+  },
+  "peerDependencies": {
+    "@emotion/react": ">=11.0.0",
+    "@emotion/styled": ">=11.0.0",
+    "@mui/material": ">=5.0.0",
+    "@mui/x-date-pickers": ">=6.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
