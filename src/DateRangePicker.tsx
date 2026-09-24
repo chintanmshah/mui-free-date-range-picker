@@ -7,6 +7,8 @@ import {
   useMediaQuery,
 } from '@mui/material'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import InputAdornment from '@mui/material/InputAdornment'
 import type { TextFieldProps } from '@mui/material/TextField'
 import type { PickerValidDate } from '@mui/x-date-pickers/models'
@@ -151,6 +153,8 @@ export function DateRangePicker({
       && !utils.isBefore(visibleRange[1], day)
     const isEdge = (visibleRange[0] !== null && utils.isEqual(day, visibleRange[0]))
       || (visibleRange[1] !== null && utils.isEqual(day, visibleRange[1]))
+    const isStart = visibleRange[0] !== null && utils.isEqual(day, visibleRange[0])
+    const isEnd = visibleRange[1] !== null && utils.isEqual(day, visibleRange[1])
     const isPreview = preview !== null && isInRange && !isEdge
     const isSelectedRange = preview === null && isInRange
 
@@ -163,9 +167,22 @@ export function DateRangePicker({
       },
       'data-range-preview': isPreview || undefined,
       'data-range-selected': isSelectedRange || undefined,
+      'data-range-start': isSelectedRange && isStart || undefined,
+      'data-range-end': isSelectedRange && isEnd || undefined,
       sx: {
-        ...(isPreview ? { borderRadius: 0, borderTop: '1px dashed', borderBottom: '1px dashed' } : {}),
-        ...(isSelectedRange ? { borderRadius: 0, bgcolor: 'primary.main', color: 'primary.contrastText' } : {}),
+        ...(isPreview ? {
+          margin: 0,
+          borderTop: '1px dashed',
+          borderBottom: '1px dashed',
+          borderRadius: isStart ? '50% 0 0 50%' : isEnd ? '0 50% 50% 0' : 0,
+        } : {}),
+        ...(isSelectedRange ? {
+          margin: 0,
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+          borderRadius: isStart ? '50% 0 0 50%' : isEnd ? '0 50% 50% 0' : 0,
+          width: '100%',
+        } : {}),
       },
     }
   }
@@ -231,35 +248,20 @@ export function DateRangePicker({
         onClose={() => setOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, pt: 1 }}>
-          <IconButton aria-label="Previous month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, -1))}>
-            {'<'}
-          </IconButton>
-          <Typography variant="subtitle1">
-            {formatMonthYear(utils, activeMonth)}
-            {!compact && ` / ${formatMonthYear(utils, nextMonth)}`}
-          </Typography>
-          <IconButton aria-label="Next month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, 1))}>
-            {'>'}
-          </IconButton>
-        </Box>
         <Box sx={{ display: 'flex', p: 1 }}>
-          <DateCalendar
-            value={displayedRange[0]}
-            referenceDate={activeMonth}
-            onChange={(date) => date !== null && handleDateSelect(date)}
-            minDate={minDate}
-            maxDate={maxDate}
-            disablePast={disablePast}
-            disableFuture={disableFuture}
-            shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
-            slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
-            sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
-          />
-          {!compact && (
+          <Box data-testid="date-range-calendar-left" sx={{ flex: 1, minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1 }}>
+              <IconButton aria-label="Previous month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, -1))}>
+                <ChevronLeftIcon />
+              </IconButton>
+              <Typography variant="subtitle1" sx={{ flex: 1, textAlign: 'center' }}>
+                {formatMonthYear(utils, activeMonth)}
+              </Typography>
+              <Box sx={{ width: 40 }} />
+            </Box>
             <DateCalendar
-              value={displayedRange[1]}
-              referenceDate={nextMonth}
+              value={displayedRange[0]}
+              referenceDate={activeMonth}
               onChange={(date) => date !== null && handleDateSelect(date)}
               minDate={minDate}
               maxDate={maxDate}
@@ -269,6 +271,33 @@ export function DateRangePicker({
               slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
               sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
             />
+          </Box>
+          {!compact && (
+            <Box data-testid="date-range-month-divider" sx={{ borderLeft: 1, borderColor: 'divider', mx: 1 }}>
+              <Box data-testid="date-range-calendar-right" sx={{ flex: 1, minWidth: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1 }}>
+                  <Box sx={{ width: 40 }} />
+                  <Typography variant="subtitle1" sx={{ flex: 1, textAlign: 'center' }}>
+                    {formatMonthYear(utils, nextMonth)}
+                  </Typography>
+                  <IconButton aria-label="Next month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, 1))}>
+                    <ChevronRightIcon />
+                  </IconButton>
+                </Box>
+                <DateCalendar
+                  value={displayedRange[1]}
+                  referenceDate={nextMonth}
+                  onChange={(date) => date !== null && handleDateSelect(date)}
+                  minDate={minDate}
+                  maxDate={maxDate}
+                  disablePast={disablePast}
+                  disableFuture={disableFuture}
+                  shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
+                  slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
+                  sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
+                />
+              </Box>
+            </Box>
           )}
         </Box>
       </Popover>

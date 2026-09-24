@@ -29,7 +29,8 @@ describe('calendar navigation', () => {
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
 
-    expect(screen.getByText('July 2025 / August 2025')).toBeInTheDocument()
+    expect(screen.getByTestId('date-range-calendar-left')).toHaveTextContent('July 2025')
+    expect(screen.getByTestId('date-range-calendar-right')).toHaveTextContent('August 2025')
   })
 
   it('shows adjacent months when no range is selected', async () => {
@@ -37,10 +38,13 @@ describe('calendar navigation', () => {
     renderPicker()
 
     await user.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
-    screen.getByRole('button', { name: 'Previous month' })
-    screen.getByRole('button', { name: 'Next month' })
-    expect(screen.getAllByText('April 2024')).toHaveLength(1)
-    expect(screen.getAllByText('May 2024')).toHaveLength(1)
+    const leftCalendar = screen.getByTestId('date-range-calendar-left')
+    const rightCalendar = screen.getByTestId('date-range-calendar-right')
+    expect(leftCalendar).toContainElement(screen.getByRole('button', { name: 'Previous month' }))
+    expect(rightCalendar).toContainElement(screen.getByRole('button', { name: 'Next month' }))
+    expect(leftCalendar).toHaveTextContent('April 2024')
+    expect(rightCalendar).toHaveTextContent('May 2024')
+    expect(screen.getByTestId('date-range-month-divider')).toBeInTheDocument()
   })
 
   it('moves both visible months with one navigation control', async () => {
@@ -50,6 +54,7 @@ describe('calendar navigation', () => {
     await user.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
     await user.click(screen.getByRole('button', { name: 'Next month' }))
 
-    expect(screen.getByText('May 2024 / June 2024')).toBeInTheDocument()
+    expect(screen.getByTestId('date-range-calendar-left')).toHaveTextContent('May 2024')
+    expect(screen.getByTestId('date-range-calendar-right')).toHaveTextContent('June 2024')
   })
 })

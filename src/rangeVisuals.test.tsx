@@ -33,5 +33,7 @@ describe('range calendar visuals', () => {
     await user.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
 
     expect(document.querySelector('[data-range-selected="true"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-range-start="true"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-range-end="true"]')).toBeInTheDocument()
   })
 })
