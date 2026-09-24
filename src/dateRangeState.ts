@@ -14,6 +14,7 @@ export interface DateRangeState<TDate> {
   clear(): void
 }
 
+/** Create the selection state used by the picker and independently testable consumers. */
 export function createDateRangeState<TDate>(
   adapter: DateRangeAdapter<TDate>,
   value: DateRange<TDate> = [null, null],

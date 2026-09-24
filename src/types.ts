@@ -1,8 +1,11 @@
 import type { SxProps, Theme } from '@mui/material/styles'
+import type { TextFieldProps } from '@mui/material/TextField'
 import type { PickerValidDate } from '@mui/x-date-pickers/models'
 
+/** A start/end tuple. Either date may be null while a range is being selected. */
 export type DateRange<TDate> = [TDate | null, TDate | null]
 
+/** The part of a range the next calendar selection will fill. */
 export type RangeSelectionPhase = 'start' | 'end'
 
 export interface DateRangeAdapter<TDate> {
@@ -14,6 +17,13 @@ export interface DateRangeConstraints<TDate> {
   isDateSelectable?: (date: TDate) => boolean
 }
 
+/** Field customization points exposed by the picker. */
+export interface DateRangePickerSlotProps {
+  startField?: Partial<TextFieldProps>
+  endField?: Partial<TextFieldProps>
+}
+
+/** Props for the adapter-agnostic MUI date-range picker. */
 export interface DateRangePickerProps<TDate = PickerValidDate> {
   value?: DateRange<TDate>
   defaultValue?: DateRange<TDate>
@@ -27,6 +37,6 @@ export interface DateRangePickerProps<TDate = PickerValidDate> {
   readOnly?: boolean
   closeOnSelect?: boolean
   referenceDate?: TDate
-  slotProps?: Record<string, unknown>
+  slotProps?: DateRangePickerSlotProps
   sx?: SxProps<Theme>
 }

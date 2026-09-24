@@ -62,4 +62,20 @@ describe('DateRangePicker', () => {
       new Date(2024, 3, 15),
     ])
   })
+
+  it('clears an uncontrolled range', async () => {
+    const user = userEvent.setup()
+    renderPicker({ defaultValue: [new Date(2024, 3, 10), new Date(2024, 3, 15)] })
+
+    await user.click(screen.getByRole('button', { name: 'Clear date range' }))
+
+    expect(screen.getByLabelText('Start date')).toHaveValue('')
+    expect(screen.getByLabelText('End date')).toHaveValue('')
+  })
+
+  it('forwards typed field slot props', () => {
+    renderPicker({ slotProps: { startField: { 'data-testid': 'custom-start-field' } } })
+
+    expect(screen.getByTestId('custom-start-field')).toBeInTheDocument()
+  })
 })

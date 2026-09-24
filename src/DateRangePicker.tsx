@@ -10,14 +10,15 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import InputAdornment from '@mui/material/InputAdornment'
-import type { TextFieldProps } from '@mui/material/TextField'
 import type { PickerValidDate } from '@mui/x-date-pickers/models'
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar'
 import { useLocalizationContext } from '@mui/x-date-pickers/internals'
+import type { SxProps, Theme } from '@mui/material/styles'
 import { useEffect, useRef, useState } from 'react'
 import { createDateRangeState } from './dateRangeState'
 import type { DateRange, DateRangePickerProps } from './types'
 
+/** A free-MUI date-range picker with adapter-aware fields and dual calendars. */
 export function DateRangePicker({
   value,
   defaultValue = [null, null],
@@ -71,8 +72,8 @@ export function DateRangePicker({
   const displayedStart = displayedRange[0]
   const displayedEnd = displayedRange[1]
   const fieldFormat = format ?? utils.formats.keyboardDate
-  const startFieldProps = slotProps?.startField as Partial<TextFieldProps> | undefined
-  const endFieldProps = slotProps?.endField as Partial<TextFieldProps> | undefined
+  const startFieldProps = slotProps?.startField
+  const endFieldProps = slotProps?.endField
   const displayValue = (date: PickerValidDate | null) =>
     date === null ? '' : utils.formatByString(date, fieldFormat)
   const formattedStart = displayValue(displayedStart)
@@ -145,7 +146,7 @@ export function DateRangePicker({
     }
   }
 
-  const getDaySlotProps = (day: PickerValidDate) => {
+  const getDaySlotProps = (day: PickerValidDate): DaySlotProps => {
     const preview = stateRef.current.preview
     const visibleRange = preview ?? displayedRange
     const isInRange = visibleRange[0] !== null && visibleRange[1] !== null
@@ -274,60 +275,118 @@ export function DateRangePicker({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Box sx={{ display: 'flex', p: 1 }}>
-          <Box data-testid="date-range-calendar-left" sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1 }}>
-              <IconButton aria-label="Previous month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, -1))}>
-                <ChevronLeftIcon />
-              </IconButton>
-              <Typography variant="subtitle1" sx={{ flex: 1, textAlign: 'center' }}>
-                {formatMonthYear(utils, activeMonth)}
-              </Typography>
-              <Box sx={{ width: 40 }} />
-            </Box>
-            <DateCalendar
-              key={`left-${formatMonthYear(utils, activeMonth)}`}
-              value={null}
-              referenceDate={activeMonth}
-              onChange={(date) => date !== null && handleDateSelect(date)}
-              minDate={minDate}
-              maxDate={maxDate}
-              disablePast={disablePast}
-              disableFuture={disableFuture}
-              shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
-              slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
-              sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
-            />
-          </Box>
+          <CalendarSegment
+            testId="date-range-calendar-left"
+            side="left"
+            month={activeMonth}
+            utils={utils}
+            onNavigate={() => setActiveMonth(utils.addMonths(activeMonth, -1))}
+            onChange={handleDateSelect}
+            minDate={minDate}
+            maxDate={maxDate}
+            disablePast={disablePast}
+            disableFuture={disableFuture}
+            shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
+            getDaySlotProps={getDaySlotProps}
+          />
           {!compact && (
             <Box data-testid="date-range-month-divider" sx={{ borderLeft: 1, borderColor: 'divider', mx: 1 }}>
-              <Box data-testid="date-range-calendar-right" sx={{ flex: 1, minWidth: 0 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1 }}>
-                  <Box sx={{ width: 40 }} />
-                  <Typography variant="subtitle1" sx={{ flex: 1, textAlign: 'center' }}>
-                    {formatMonthYear(utils, nextMonth)}
-                  </Typography>
-                  <IconButton aria-label="Next month" onClick={() => setActiveMonth(utils.addMonths(activeMonth, 1))}>
-                    <ChevronRightIcon />
-                  </IconButton>
-                </Box>
-                <DateCalendar
-                  key={`right-${formatMonthYear(utils, nextMonth)}`}
-                  value={null}
-                  referenceDate={nextMonth}
-                  onChange={(date) => date !== null && handleDateSelect(date)}
-                  minDate={minDate}
-                  maxDate={maxDate}
-                  disablePast={disablePast}
-                  disableFuture={disableFuture}
-                  shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
-                  slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
-                  sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
-                />
-              </Box>
+              <CalendarSegment
+                testId="date-range-calendar-right"
+                side="right"
+                month={nextMonth}
+                utils={utils}
+                onNavigate={() => setActiveMonth(utils.addMonths(activeMonth, 1))}
+                onChange={handleDateSelect}
+                minDate={minDate}
+                maxDate={maxDate}
+                disablePast={disablePast}
+                disableFuture={disableFuture}
+                shouldDisableDate={(date) => !isSelectable(date, utils, minDate, maxDate, disablePast, disableFuture)}
+                getDaySlotProps={getDaySlotProps}
+              />
             </Box>
           )}
         </Box>
       </Popover>
+    </Box>
+  )
+}
+
+type PickerAdapter = ReturnType<typeof useLocalizationContext>['adapter']
+
+interface DaySlotProps {
+  onMouseEnter: (event: React.MouseEvent<HTMLElement>) => void
+  'data-range-preview'?: boolean
+  'data-range-selected'?: boolean
+  'data-range-start'?: boolean
+  'data-range-end'?: boolean
+  sx: SxProps<Theme>
+}
+
+interface CalendarSegmentProps {
+  testId: string
+  side: 'left' | 'right'
+  month: PickerValidDate
+  utils: PickerAdapter
+  onNavigate: () => void
+  onChange: (date: PickerValidDate) => void
+  minDate?: PickerValidDate
+  maxDate?: PickerValidDate
+  disablePast: boolean
+  disableFuture: boolean
+  shouldDisableDate: (date: PickerValidDate) => boolean
+  getDaySlotProps: (day: PickerValidDate) => DaySlotProps
+}
+
+function CalendarSegment({
+  testId,
+  side,
+  month,
+  utils,
+  onNavigate,
+  onChange,
+  minDate,
+  maxDate,
+  disablePast,
+  disableFuture,
+  shouldDisableDate,
+  getDaySlotProps,
+}: CalendarSegmentProps) {
+  const isLeft = side === 'left'
+
+  return (
+    <Box data-testid={testId} sx={{ flex: 1, minWidth: 0 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1 }}>
+        {isLeft ? (
+          <IconButton aria-label="Previous month" onClick={onNavigate}>
+            <ChevronLeftIcon />
+          </IconButton>
+        ) : <Box sx={{ width: 40 }} />}
+        <Typography variant="subtitle1" sx={{ flex: 1, textAlign: 'center' }}>
+          {formatMonthYear(utils, month)}
+        </Typography>
+        {isLeft ? (
+          <Box sx={{ width: 40 }} />
+        ) : (
+          <IconButton aria-label="Next month" onClick={onNavigate}>
+            <ChevronRightIcon />
+          </IconButton>
+        )}
+      </Box>
+      <DateCalendar
+        key={`${side}-${formatMonthYear(utils, month)}`}
+        value={null}
+        referenceDate={month}
+        onChange={(date) => date !== null && onChange(date)}
+        minDate={minDate}
+        maxDate={maxDate}
+        disablePast={disablePast}
+        disableFuture={disableFuture}
+        shouldDisableDate={shouldDisableDate}
+        slotProps={{ day: (ownerState) => getDaySlotProps(ownerState.day) }}
+        sx={{ '& .MuiPickersCalendarHeader-root': { display: 'none' } }}
+      />
     </Box>
   )
 }
