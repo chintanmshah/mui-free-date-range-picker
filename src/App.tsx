@@ -8,7 +8,6 @@ import './App.css'
 
 const theme = createTheme({
   palette: {
-    primary: { main: '#e45b3f' },
     background: { default: '#f4efe5', paper: '#fffdf8' },
     text: { primary: '#233332', secondary: '#64716c' },
   },
