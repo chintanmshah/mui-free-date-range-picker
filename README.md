@@ -1,32 +1,57 @@
-# React + TypeScript + Vite
+# mui-free-date-range-picker
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A date-range picker composed from free MUI and MUI X date-picker primitives. It provides a controlled or uncontrolled range API without depending on `@mui/x-date-pickers-pro`.
 
-Currently, two official plugins are available:
+## Install
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install mui-free-date-range-picker @mui/material @mui/x-date-pickers @emotion/react @emotion/styled date-fns
+```
 
-## React Compiler
+## Usage
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Wrap the picker in MUI's `LocalizationProvider` and choose the adapter for your date library:
 
-## Expanding the Oxlint configuration
+```tsx
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DateRangePicker } from 'mui-free-date-range-picker'
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+export function BookingDates() {
+  return (
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <DateRangePicker
+        defaultValue={[new Date(2025, 5, 12), new Date(2025, 5, 18)]}
+        onChange={(nextRange) => console.log(nextRange)}
+      />
+    </LocalizationProvider>
+  )
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Controlled values
+
+`value` is a two-item tuple: `[start, end]`. Either item may be `null` while a range is being selected.
+
+```tsx
+const [value, setValue] = useState<[Date | null, Date | null]>([null, null])
+
+<DateRangePicker value={value} onChange={setValue} minDate={new Date()} />
+```
+
+Supported options include `minDate`, `maxDate`, `disablePast`, `disableFuture`, `format`, `disabled`, `readOnly`, `closeOnSelect`, `slotProps`, and `sx`.
+
+## Peer dependencies
+
+React, React DOM, Emotion, Material UI, and MUI X Date Pickers are peer dependencies of the published package. The package is adapter-agnostic and uses the active `LocalizationProvider` adapter for date comparisons and formatting.
+
+## Development
+
+```bash
+npm install
+npm run dev
+npm test -- --run
+npm run build
+```
+
+The Vite demo uses `AdapterDateFns`; the package itself does not hard-code a date library. The implementation is original and uses public free MUI APIs. It is not a copy of MUI X Pro source code and does not provide MUI X Pro's commercial-only APIs.

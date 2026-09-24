@@ -111,7 +111,7 @@ export function DateRangePicker({
           <DateCalendar
             value={range[0]}
             referenceDate={calendarReferenceDate}
-            onChange={(date) => handleDateSelect(date)}
+            onChange={(date) => date !== null && handleDateSelect(date)}
             minDate={minDate}
             maxDate={maxDate}
             disablePast={disablePast}
@@ -122,7 +122,7 @@ export function DateRangePicker({
             <DateCalendar
               value={range[1]}
               referenceDate={nextMonth}
-              onChange={(date) => handleDateSelect(date)}
+              onChange={(date) => date !== null && handleDateSelect(date)}
               minDate={minDate}
               maxDate={maxDate}
               disablePast={disablePast}
