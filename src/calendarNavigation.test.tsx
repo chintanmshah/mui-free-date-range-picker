@@ -1,6 +1,6 @@
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DateRangePicker } from './DateRangePicker'
@@ -56,5 +56,21 @@ describe('calendar navigation', () => {
 
     expect(screen.getByTestId('date-range-calendar-left')).toHaveTextContent('May 2024')
     expect(screen.getByTestId('date-range-calendar-right')).toHaveTextContent('June 2024')
+  })
+
+  it('changes the actual calendar grid when moving across month lengths', async () => {
+    const user = userEvent.setup()
+    render(
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <DateRangePicker referenceDate={new Date(2025, 0, 1)} />
+      </LocalizationProvider>,
+    )
+
+    await user.click(screen.getAllByRole('button', { name: 'Open calendar' })[0])
+    expect(within(screen.getAllByRole('grid')[0]).getByRole('gridcell', { name: '31' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Next month' }))
+
+    expect(within(screen.getAllByRole('grid')[0]).queryByRole('gridcell', { name: '31' })).not.toBeInTheDocument()
   })
 })

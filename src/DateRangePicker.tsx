@@ -157,6 +157,13 @@ export function DateRangePicker({
     const isEnd = visibleRange[1] !== null && utils.isEqual(day, visibleRange[1])
     const isPreview = preview !== null && isInRange && !isEdge
     const isSelectedRange = preview === null && isInRange
+    const rangeRadius = isStart && isEnd
+      ? '50%'
+      : isStart
+        ? '50% 0 0 50%'
+        : isEnd
+          ? '0 50% 50% 0'
+          : 0
 
     return {
       onMouseEnter: (_event: React.MouseEvent<HTMLElement>) => {
@@ -171,17 +178,35 @@ export function DateRangePicker({
       'data-range-end': isSelectedRange && isEnd || undefined,
       sx: {
         ...(isPreview ? {
-          margin: 0,
-          borderTop: '1px dashed',
-          borderBottom: '1px dashed',
-          borderRadius: isStart ? '50% 0 0 50%' : isEnd ? '0 50% 50% 0' : 0,
+          position: 'relative',
+          zIndex: 0,
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            inset: '2px 0',
+            margin: '-2px',
+            zIndex: -1,
+            backgroundColor: 'primary.main',
+            opacity: 0.16,
+            borderTop: '1px dashed',
+            borderBottom: '1px dashed',
+            borderColor: 'primary.main',
+            borderRadius: rangeRadius,
+          },
         } : {}),
         ...(isSelectedRange ? {
-          margin: 0,
-          bgcolor: 'primary.main',
+          position: 'relative',
+          zIndex: 0,
           color: 'primary.contrastText',
-          borderRadius: isStart ? '50% 0 0 50%' : isEnd ? '0 50% 50% 0' : 0,
-          width: '100%',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            margin: '-4px',
+            zIndex: -1,
+            backgroundColor: 'primary.main',
+            borderRadius: rangeRadius,
+          },
         } : {}),
       },
     }
@@ -260,7 +285,8 @@ export function DateRangePicker({
               <Box sx={{ width: 40 }} />
             </Box>
             <DateCalendar
-              value={displayedRange[0]}
+              key={`left-${formatMonthYear(utils, activeMonth)}`}
+              value={null}
               referenceDate={activeMonth}
               onChange={(date) => date !== null && handleDateSelect(date)}
               minDate={minDate}
@@ -285,7 +311,8 @@ export function DateRangePicker({
                   </IconButton>
                 </Box>
                 <DateCalendar
-                  value={displayedRange[1]}
+                  key={`right-${formatMonthYear(utils, nextMonth)}`}
+                  value={null}
                   referenceDate={nextMonth}
                   onChange={(date) => date !== null && handleDateSelect(date)}
                   minDate={minDate}
