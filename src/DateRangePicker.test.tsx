@@ -19,8 +19,8 @@ describe('DateRangePicker', () => {
   it('renders start and end fields', () => {
     renderPicker()
 
-    expect(screen.getByLabelText('Start date')).toBeInTheDocument()
-    expect(screen.getByLabelText('End date')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Start date' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'End date' })).toBeInTheDocument()
   })
 
   it('emits a completed range after two calendar selections', async () => {
@@ -45,8 +45,8 @@ describe('DateRangePicker', () => {
       value: [new Date(2024, 3, 10), new Date(2024, 3, 15)],
     })
 
-    expect(screen.getByLabelText('Start date')).toHaveValue('04/10/2024')
-    expect(screen.getByLabelText('End date')).toHaveValue('04/15/2024')
+    expect(screen.getByRole('group', { name: 'Start date' })).toHaveTextContent('04/10/2024')
+    expect(screen.getByRole('group', { name: 'End date' })).toHaveTextContent('04/15/2024')
   })
 
   it('does not complete a range with a disabled date', async () => {
@@ -69,8 +69,8 @@ describe('DateRangePicker', () => {
 
     await user.click(screen.getByRole('button', { name: 'Clear date range' }))
 
-    expect(screen.getByLabelText('Start date')).toHaveValue('')
-    expect(screen.getByLabelText('End date')).toHaveValue('')
+    expect(screen.getByRole('group', { name: 'Start date' })).toHaveTextContent('MM/DD/YYYY')
+    expect(screen.getByRole('group', { name: 'End date' })).toHaveTextContent('MM/DD/YYYY')
   })
 
   it('forwards typed field slot props', () => {

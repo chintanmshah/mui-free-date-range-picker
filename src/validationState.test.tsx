@@ -14,5 +14,5 @@ it('marks a controlled range invalid when it violates the date constraints', () 
     </LocalizationProvider>,
   )
 
-  expect(screen.getByLabelText('Start date')).toHaveAttribute('aria-invalid', 'true')
+  expect(screen.getByRole('group', { name: 'Start date' })).toHaveAttribute('aria-invalid', 'true')
 })

@@ -22,6 +22,6 @@ describe('package entrypoint', () => {
       </LocalizationProvider>,
     )
 
-    expect(screen.getByLabelText('Start date')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Start date' })).toBeInTheDocument()
   })
 })
